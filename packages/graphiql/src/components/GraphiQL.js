@@ -89,10 +89,10 @@ export class GraphiQL extends React.Component {
       props.query !== undefined
         ? props.query
         : this._storage.get('query') !== null
-        ? this._storage.get('query')
-        : props.defaultQuery !== undefined
-        ? props.defaultQuery
-        : defaultQuery;
+          ? this._storage.get('query')
+          : props.defaultQuery !== undefined
+            ? props.defaultQuery
+            : defaultQuery;
 
     // Get the initial query facts.
     const queryFacts = getQueryFacts(props.schema, query);
@@ -108,10 +108,10 @@ export class GraphiQL extends React.Component {
       props.operationName !== undefined
         ? props.operationName
         : getSelectedOperationName(
-            null,
-            this._storage.get('operationName'),
-            queryFacts && queryFacts.operations
-          );
+          null,
+          this._storage.get('operationName'),
+          queryFacts && queryFacts.operations
+        );
 
     // prop can be supplied to open docExplorer initially
     let docExplorerOpen = props.docExplorerOpen || false;
@@ -132,6 +132,7 @@ export class GraphiQL extends React.Component {
       schema: props.schema,
       query,
       variables,
+      files: [],
       operationName,
       docExplorerOpen,
       response: props.response,
@@ -276,29 +277,29 @@ export class GraphiQL extends React.Component {
       children,
       child => child.type === GraphiQL.Toolbar
     ) || (
-      <GraphiQL.Toolbar>
-        <ToolbarButton
-          onClick={this.handlePrettifyQuery}
-          title="Prettify Query (Shift-Ctrl-P)"
-          label="Prettify"
-        />
-        <ToolbarButton
-          onClick={this.handleMergeQuery}
-          title="Merge Query (Shift-Ctrl-M)"
-          label="Merge"
-        />
-        <ToolbarButton
-          onClick={this.handleCopyQuery}
-          title="Copy Query (Shift-Ctrl-C)"
-          label="Copy"
-        />
-        <ToolbarButton
-          onClick={this.handleToggleHistory}
-          title="Show History"
-          label="History"
-        />
-      </GraphiQL.Toolbar>
-    );
+        <GraphiQL.Toolbar>
+          <ToolbarButton
+            onClick={this.handlePrettifyQuery}
+            title="Prettify Query (Shift-Ctrl-P)"
+            label="Prettify"
+          />
+          <ToolbarButton
+            onClick={this.handleMergeQuery}
+            title="Merge Query (Shift-Ctrl-M)"
+            label="Merge"
+          />
+          <ToolbarButton
+            onClick={this.handleCopyQuery}
+            title="Copy Query (Shift-Ctrl-C)"
+            label="Copy"
+          />
+          <ToolbarButton
+            onClick={this.handleToggleHistory}
+            title="Show History"
+            label="History"
+          />
+        </GraphiQL.Toolbar>
+      );
 
     const footer = find(children, child => child.type === GraphiQL.Footer);
 
@@ -414,6 +415,37 @@ export class GraphiQL extends React.Component {
                   editorTheme={this.props.editorTheme}
                   readOnly={this.props.readOnly}
                 />
+                <div className="variable-editor-files-list">
+                  <button type="button"
+                    aria-label="Adds a file upload to variables"
+                    title="Adds a file upload to variables "
+                    onClick={this.handleAddFileVariable}>
+                    {'Add file'}
+                  </button>
+                  {
+                    this.state.files.map((file, index) =>
+                      <div key={index} className="variable-editor-files-item">
+                        <input
+                          type="text"
+                          className="variable-editor-filename-input"
+                          value={file.name}
+                          placeholder="File name (used as query variable)"
+                          aria-label="File name (used as query variable)"
+                          onChange={this.handleEditFileVariableName(index)} />
+                        <input
+                          type="file"
+                          className="variable-editor-filedata-input"
+                          onChange={this.handleEditFileVariableData(index)} />
+                        <button
+                          type="button"
+                          aria-label="Removes the file variable"
+                          title="Removes the file variable"
+                          className="variable-editor-files-remove"
+                          onClick={this.handleRemoveFileVariable(index)}>✕</button>
+                      </div>
+                    )
+                  }
+                </div>
               </section>
             </div>
             <div className="resultWrap">
@@ -602,7 +634,7 @@ export class GraphiQL extends React.Component {
       });
   }
 
-  _fetchQuery(query, variables, operationName, cb) {
+  _fetchQuery(query, variables, files, operationName, cb) {
     const fetcher = this.props.fetcher;
     let jsonVariables = null;
 
@@ -620,6 +652,7 @@ export class GraphiQL extends React.Component {
     const fetch = fetcher({
       query,
       variables: jsonVariables,
+      files,
       operationName,
     });
 
@@ -674,6 +707,7 @@ export class GraphiQL extends React.Component {
     // the current query from the editor.
     const editedQuery = this.autoCompleteLeafs() || this.state.query;
     const variables = this.state.variables;
+    const files = this.state.files;
     let operationName = this.state.operationName;
 
     // If an operation was explicitly provided, different from the current
@@ -694,6 +728,7 @@ export class GraphiQL extends React.Component {
       const subscription = this._fetchQuery(
         editedQuery,
         variables,
+        files,
         operationName,
         result => {
           if (queryID === this._editorQueryID) {
@@ -1039,6 +1074,37 @@ export class GraphiQL extends React.Component {
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
+  };
+
+
+  handleAddFileVariable = () => {
+    const files = [{ name: '', data: null }, ...this.state.files];
+    this.setState({ files });
+  };
+
+  handleRemoveFileVariable = index => event => {
+    const files = this.state.files.filter((value, i) => i !== index);
+    this.setState({ files });
+  };
+
+  handleEditFileVariableName = index => event => {
+    this.setState({
+      files: this.state.files.map((value, i) => {
+        if (i !== index)
+          return value;
+        return { name: event.target.value, data: value.data };
+      })
+    });
+  };
+
+  handleEditFileVariableData = index => event => {
+    this.setState({
+      files: this.state.files.map((value, i) => {
+        if (i !== index)
+          return value;
+        return { name: value.name, data: event.target.files[0] };
+      })
+    });
   };
 }
 

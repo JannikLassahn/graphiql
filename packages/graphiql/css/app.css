@@ -182,6 +182,39 @@
   user-select: none;
 }
 
+.graphiql-container .variable-editor-files-list {
+  background-color: #f7f7f7;
+  padding: 10px 10px 10px 40px;
+}
+
+.graphiql-container .variable-editor-files-item {
+  display: flex;
+  padding: 2px 0px;
+}
+
+.graphiql-container .variable-editor-filename-input {
+  flex: 1;
+  padding: 5px;
+  background-color: #f7f7f7;
+  border: none;
+  border-bottom: 1px solid #d3d6db;
+  box-sizing: border-box;
+  font-size: 14px;
+  outline: none;
+}
+
+.graphiql-container .variable-editor-filedata-input {
+  flex: 1;
+  padding: 5px;
+}
+
+.graphiql-container .variable-editor-files-remove {
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+}
+
 .graphiql-container .codemirrorWrap {
   flex: 1;
   height: 100%;
